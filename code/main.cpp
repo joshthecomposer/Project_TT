@@ -24,14 +24,12 @@ int initialize_window()
         return FALSE;
     }
 
-
-
     window = SDL_CreateWindow(NULL,
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               WINDOW_WIDTH,
                               WINDOW_HEIGHT,
-                              SDL_WINDOW_BORDERLESS);
+                              0);
     if (!window)
     {
         fprintf(stderr, "Error creating sdl window.\n");
@@ -112,9 +110,9 @@ void process_input()
 
 void update()
 {
-    float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
+    // float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
 
-    last_frame_time = SDL_GetTicks();
+    // last_frame_time = SDL_GetTicks();
 }
 
 // Function to create the backbuffer with the same dimensions as the window
