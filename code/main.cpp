@@ -1,26 +1,20 @@
 #include "SDL.h"
 #include <stdio.h>
-#include <iostream>
 #include "constants.h"
-#include <string>
-#include <sstream>
-// #include "include/glad/glad.h"
+#include "types.c"
 
 int game_is_running = 0;
-SDL_Surface* backbuffer = nullptr;
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
+SDL_Surface* backbuffer = NULL;
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
 SDL_Rect drag_rect;
+SDL_Texture* backbufferTexture = NULL;
 
 bool is_selecting = false;
 
 int last_frame_time = 0;
 
-struct RGB {
-    int r;
-    int g;
-    int b;
-} rgb;
+RGB rgb;
 
 int initialize_window()
 {
@@ -29,6 +23,8 @@ int initialize_window()
         fprintf(stderr, "ERROR Initializing SDL.\n");
         return FALSE;
     }
+
+
 
     window = SDL_CreateWindow(NULL,
                               SDL_WINDOWPOS_CENTERED,
@@ -42,6 +38,11 @@ int initialize_window()
         return FALSE;
     }
 
+    if (renderer != NULL)
+    {
+        SDL_DestroyRenderer(renderer);
+    }
+
     renderer = SDL_CreateRenderer(window,
                                   -1,
                                   0);
@@ -53,15 +54,13 @@ int initialize_window()
     return TRUE;
 }
 
-void TestConvertHexToRgb(std::string input)
+void TestConvertHexToRgb(const char* input )
 {
-    int r,g,b;
-    std::istringstream(input.substr(0,2)) >> std::hex >> r;
-    std::istringstream(input.substr(2,2)) >> std::hex >> g;
-    std::istringstream(input.substr(4,2)) >> std::hex >> b;
-    rgb.r = r;
-    rgb.g =g;
-    rgb.b = b;
+    if (input[0] == '#')
+    {
+        input++;
+    }
+    sscanf(input, "%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
 }
 
 void setup()
@@ -104,8 +103,8 @@ void process_input()
         if (event.button.button == SDL_BUTTON_LEFT)
         {
             is_selecting = false;
-            drag_rect.w = 0;
             drag_rect.h = 0;
+            drag_rect.w = 0;
         }
         break;
     }
@@ -118,25 +117,10 @@ void update()
     last_frame_time = SDL_GetTicks();
 }
 
-// void render()
-// {
-//     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-//     SDL_RenderClear(renderer);
-
-//     SDL_SetRenderDrawColor(renderer, 100, 200, 100, 255);
-//     if (is_selecting)
-//     {
-//         SDL_RenderFillRect(renderer, &drag_rect);
-//     }
-
-//     SDL_RenderPresent(renderer);
-// }
-
-
 // Function to create the backbuffer with the same dimensions as the window
 void CreateBackbuffer(SDL_Renderer* renderer, int window_width, int window_height)
 {
-    if (backbuffer != nullptr)
+    if (backbuffer != NULL)
     {
         SDL_FreeSurface(backbuffer);
     }
@@ -161,11 +145,11 @@ void RenderWithBackbuffer(SDL_Renderer* renderer, int window_width, int window_h
         SDL_RenderFillRect(renderer, &drag_rect);
     }
 
+    // Create a texture from the backbuffer surface
+    backbufferTexture = SDL_CreateTextureFromSurface(renderer, backbuffer);
+
     // Copy the backbuffer onto the front buffer
     SDL_RenderReadPixels(renderer, nullptr, backbuffer->format->format, backbuffer->pixels, backbuffer->pitch);
-
-    // Create a texture from the backbuffer surface
-    SDL_Texture* backbufferTexture = SDL_CreateTextureFromSurface(renderer, backbuffer);
 
     // Render the backbuffer texture onto the screen
     SDL_RenderCopy(renderer, backbufferTexture, nullptr, nullptr);
@@ -179,6 +163,9 @@ void RenderWithBackbuffer(SDL_Renderer* renderer, int window_width, int window_h
 
 void destroy_app()
 {
+    if (backbufferTexture) {
+        SDL_DestroyTexture(backbufferTexture);
+    }
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -188,6 +175,7 @@ int main(int argc, char *argv[])
     game_is_running = initialize_window();
 
     CreateBackbuffer(renderer,WINDOW_WIDTH,WINDOW_HEIGHT);
+
     setup();
 
     while (game_is_running)

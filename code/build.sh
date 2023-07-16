@@ -9,7 +9,7 @@ pushd build
 gcc -I /usr/local/include/SDL2/ -c ../code/main.cpp
 
 # Link the object file to the libraries for final executable
-gcc main.o -lSDL2 -lSDL2main -lstdc++ -o main
+gcc main.o -lSDL2 -lSDL2main -o main
 
 # Navigate back to the original directory
 popd
